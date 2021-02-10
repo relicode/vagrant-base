@@ -12,6 +12,12 @@ CPU_USE_PERCENTAGE = 100
 MEMORY_TO_USE = (MEMORY * MEMORY_USE_PERCENTAGE / 100.0).to_i
 CPUS_TO_USE = (CPUS * CPU_USE_PERCENTAGE / 100.0).to_i
 
+# SYNCED_DIR = [
+#   ENV["HOME"] + "/projects",  # Host directory
+#   "/projects",                # Guest directory
+# ]
+# SOCKS_PORT = 44480
+
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/focal64"
   config.vm.hostname = CURRENT_DIR
@@ -25,6 +31,9 @@ Vagrant.configure("2") do |config|
     # bridge: "eno1",
     # use_dhcp_assigned_default_route: true,
     # ip: "192.168.1.1"
+
+  if defined?(SYNCED_DIR) then config.vm.synced_folder SYNCED_DIR[0], SYNCED_DIR[1] end
+  if defined?(SOCKS_PORT) then config.ssh.extra_args = "-D", SOCKS_PORT end
 
   config.vm.provision "file", source: "./provision/home", destination: "/home/vagrant"
   config.vm.provision "shell", reboot: true, inline: <<-PRIVILEGED_SCRIPT
