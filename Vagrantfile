@@ -16,7 +16,7 @@ CPUS_TO_USE = (CPUS * CPU_USE_PERCENTAGE / 100.0).to_i
 #   ENV["HOME"] + "/projects",  # Host directory
 #   "/projects",                # Guest directory
 # ]
-# SOCKS_PORT = 44480
+# SOCKS_PORT = "44480"
 
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/focal64"
