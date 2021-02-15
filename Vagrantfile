@@ -25,6 +25,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/focal64"
   config.vm.hostname = CURRENT_DIR
   config.vm.provider "virtualbox" do |vb|
+    vb.name = CURRENT_DIR
     vb.memory = (HOST_MEMORY * MEMORY_USE_PERCENTAGE / 100.0).to_i
     vb.cpus = (HOST_CPUS * CPUS_USE_PERCENTAGE / 100.0).to_i
   end
