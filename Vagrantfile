@@ -3,19 +3,21 @@
 
 CURRENT_DIR = File.basename(Dir.getwd) # For example database.lan
 
-HOST_MEMORY = 16 * 1024 # Total memory on host (MB)
+HOST_MEMORY = 16 * 1024 # Total memory on host (GB)
 HOST_CPUS = 2           # Total CPUs on host
 
-MEMORY_USE_PERCENTAGE = 75
-CPUS_USE_PERCENTAGE = 100
+MEMORY_USE_PERCENTAGE = 75 # Percentage of host's memory provisioned for the VM
+CPUS_USE_PERCENTAGE = 100  # Percentage of host's CPUs provisioned for the VM
 
-# SOCKS_PORT = "44480"
+# SOCKS_PORT = "44480"     # If uncommented, allows automatic bridge forming on 'vagrant ssh'
 
+# Optional synced folder between the host and the guest
 # SYNCED_DIR = {
 #   HOST: ENV["HOME"] + "/projects",
 #   GUEST: "/projects",
 # }
 
+# Optional static IP address for the VM
 # NETWORK = {
 #   INTERFACE: "eno1",
 #   IP: "192.168.1.1",
@@ -45,7 +47,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision "file", source: "./provision/home", destination: "/home/vagrant"
   config.vm.provision "shell", reboot: true, inline: <<-PRIVILEGED_SCRIPT
     apt-get update -y
-    apt-get install -y build-essential curl git python3-pip tmux vim wget
+    apt-get install -y build-essential curl git python3-pip tmux vim wget openconnect
     apt-get dist-upgrade -y
     apt-get autoremove -y
     apt-get autoclean -y
