@@ -56,14 +56,10 @@ CUSTOM = {
 
   # Optixal's Neovim config
   NVIM: true,
-
-  # The desktop environment you want to install: kubuntu, lubuntu, ubuntu, xubuntu...
-  GUI: false,
 }
 
 ADD_ONS = CUSTOM[:ADD_ONS]
 GUEST = CUSTOM[:GUEST]
-GUI = CUSTOM[:GUI]
 HOST = CUSTOM[:HOST]
 NAME = CUSTOM[:NAME]
 NVIM = CUSTOM[:NVIM]
@@ -82,7 +78,6 @@ Vagrant.configure('2') do |config|
     vb.name = NAME
     vb.memory = calculate_usage HOST[:MEMORY], GUEST[:MEMORY]
     vb.cpus = calculate_usage HOST[:CPUS], GUEST[:CPUS]
-    vb.gui = GUI ? true : false
     vb.check_guest_additions = ADD_ONS ? true : false
   end
 
@@ -127,11 +122,6 @@ Vagrant.configure('2') do |config|
   if UPDATES then
     config.vm.provision 'shell',
       inline: 'apt-get update -y; apt-get dist-upgrade -y; apt-get autoremove -y; apt-get autoclean -y'
-  end
-
-  if GUI then
-    config.vm.provision 'shell',
-      inline: "apt-get install -y #{GUI}-desktop"
   end
 
   if NVIM then
