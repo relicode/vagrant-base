@@ -12,7 +12,7 @@ CUSTOM = {
 
   HOST: {
     CPUS: 8,                   # Physical CPUs on host
-    MEMORY: gb_to_mb(80),      # Total memory on host in MB,
+    MEMORY: gb_to_mb(16),      # Total memory on host in MB,
   },
   # Resources provisioned either as absolute amount or percentage floored i.e 0.75 = 70%
   GUEST: {
@@ -40,7 +40,7 @@ CUSTOM = {
   # OPTIONAL FEATURES
 
   # Set up SOCKS proxy on given port while running `vagrant ssh`
-  # SOCKS_PORT: String(44480),
+  # SOCKS_PORT: 44480,
 
   # Shared dir
   # SYNCED_DIR: {
@@ -158,5 +158,5 @@ Vagrant.configure('2') do |config|
   end
 
   if SYNCED_DIR then config.vm.synced_folder SYNCED_DIR[:HOST], SYNCED_DIR[:GUEST] end
-  if SOCKS_PORT then config.ssh.extra_args = '-D', SOCKS_PORT end
+  if SOCKS_PORT then config.ssh.extra_args = '-D', String(SOCKS_PORT) end
 end
