@@ -154,7 +154,7 @@ Vagrant.configure('2') do |config|
 
     config.vm.provision 'shell',
       privileged: false,
-      inline: 'cd  "${HOME}/etc/oh-my-tmux" && ln -s .tmux.conf "${HOME}" && cp ./tmux.conf.local "${HOME}"'
+      inline: 'ln -s "${HOME}/etc/oh-my-tmux/.tmux.conf" ./ && cp "${HOME}/etc/oh-my-tmux/.tmux.conf.local ./"'
   end
 
   if SYNCED_DIR then config.vm.synced_folder SYNCED_DIR[:HOST], SYNCED_DIR[:GUEST] end
