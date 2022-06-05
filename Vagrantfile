@@ -11,8 +11,8 @@ CUSTOM = {
   NAME: SPLIT_DIR.length > 1 ? SPLIT_DIR[-2, 2].join('.') : SPLIT_DIR[0],
 
   HOST: {
-    CPUS: 8,                   # Physical CPUs on host
-    MEMORY: gb_to_mb(80),      # Total memory on host in MB,
+    CPUS: 2,                   # Physical CPUs on host
+    MEMORY: gb_to_mb(16),      # Total memory on host in MB,
   },
   # Resources provisioned either as absolute amount or percentage floored i.e 0.75 = 70%
   GUEST: {
@@ -40,7 +40,7 @@ CUSTOM = {
   # OPTIONAL FEATURES
 
   # Set up SOCKS proxy on given port while running `vagrant ssh`
-  # SOCKS_PORT: String(44480),
+  # SOCKS_PORT: 44480,
 
   # Shared dir
   # SYNCED_DIR: {
@@ -48,25 +48,25 @@ CUSTOM = {
     # GUEST: '/projects',
   # },
 
-  ADD_ONS: false, # Install Virtualbox Add-Ons
-  UPDATES: false, # Run apt-get update etc. on install
+  ADD_ONS: true, # Always check for VirtualBox addons
+  UPDATES: true, # Run apt-get update etc. on install
+
+  # Node version manager
+  NVM: true,
 
   # Oh-my-tmux-config
   OMT: true,
 
   # Optixal's Neovim config
   NVIM: true,
-
-  # The desktop environment you want to install: kubuntu, lubuntu, ubuntu, xubuntu...
-  GUI: false,
 }
 
 ADD_ONS = CUSTOM[:ADD_ONS]
 GUEST = CUSTOM[:GUEST]
-GUI = CUSTOM[:GUI]
 HOST = CUSTOM[:HOST]
 NAME = CUSTOM[:NAME]
 NVIM = CUSTOM[:NVIM]
+NVM = CUSTOM[:NVM]
 OMT = CUSTOM[:OMT]
 PRIVATE = CUSTOM[:NETWORKS][:PRIVATE]
 PUBLIC = CUSTOM[:NETWORKS][:PUBLIC]
@@ -82,7 +82,6 @@ Vagrant.configure('2') do |config|
     vb.name = NAME
     vb.memory = calculate_usage HOST[:MEMORY], GUEST[:MEMORY]
     vb.cpus = calculate_usage HOST[:CPUS], GUEST[:CPUS]
-    vb.gui = GUI ? true : false
     vb.check_guest_additions = ADD_ONS ? true : false
   end
 
@@ -120,18 +119,15 @@ Vagrant.configure('2') do |config|
     source: './provision/bashrc',
     destination: "${HOME}/.bashrc"
 
-  config.vm.provision 'shell',
-    privileged: false,
-    inline: 'export XDG_CACHE_HOME="${HOME}/.cache"; export XDG_CONFIG_HOME="${HOME}/.config"; export XDG_DATA_HOME="${HOME}/.local/share"; export XDG_STATE_HOME="${HOME}/.local/state"'
-
   if UPDATES then
     config.vm.provision 'shell',
       inline: 'apt-get update -y; apt-get dist-upgrade -y; apt-get autoremove -y; apt-get autoclean -y'
   end
 
-  if GUI then
+  if NVM then
     config.vm.provision 'shell',
-      inline: "apt-get install -y #{GUI}-desktop"
+      inline: 'export XDG_CACHE_HOME="${HOME}/.cache"; export XDG_CONFIG_HOME="${HOME}/.config"; export XDG_DATA_HOME="${HOME}/.local/share"; export XDG_STATE_HOME="${HOME}/.local/state"; curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash ; export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")" ; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" ; nvm i --lts',
+    privileged: false
   end
 
   if NVIM then
@@ -141,10 +137,6 @@ Vagrant.configure('2') do |config|
     config.vm.provision 'file',
       source: './provision/optixal-neovim-config',
       destination: "${HOME}/etc/optixal-neovim-config"
-
-    config.vm.provision 'shell',
-      privileged: false,
-      inline: 'cd  "${HOME}/etc/optixal-neovim-config" && cd convenience && ./install.sh'
   end
 
   if OMT then
@@ -154,9 +146,9 @@ Vagrant.configure('2') do |config|
 
     config.vm.provision 'shell',
       privileged: false,
-      inline: 'cd  "${HOME}/etc/oh-my-tmux" && ln -s .tmux.conf "${HOME}" && cp ./tmux.conf.local "${HOME}"'
+      inline: 'ln -s "${HOME}/etc/oh-my-tmux/.tmux.conf" ./ && cp "${HOME}/etc/oh-my-tmux/.tmux.conf.local" ./'
   end
 
   if SYNCED_DIR then config.vm.synced_folder SYNCED_DIR[:HOST], SYNCED_DIR[:GUEST] end
-  if SOCKS_PORT then config.ssh.extra_args = '-D', SOCKS_PORT end
+  if SOCKS_PORT then config.ssh.extra_args = '-D', String(SOCKS_PORT) end
 end
