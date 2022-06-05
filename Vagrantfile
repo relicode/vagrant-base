@@ -11,7 +11,7 @@ CUSTOM = {
   NAME: SPLIT_DIR.length > 1 ? SPLIT_DIR[-2, 2].join('.') : SPLIT_DIR[0],
 
   HOST: {
-    CPUS: 8,                   # Physical CPUs on host
+    CPUS: 2,                   # Physical CPUs on host
     MEMORY: gb_to_mb(16),      # Total memory on host in MB,
   },
   # Resources provisioned either as absolute amount or percentage floored i.e 0.75 = 70%
@@ -48,8 +48,11 @@ CUSTOM = {
     # GUEST: '/projects',
   # },
 
-  ADD_ONS: false, # Install Virtualbox Add-Ons
-  UPDATES: false, # Run apt-get update etc. on install
+  ADD_ONS: true, # Always check for VirtualBox addons
+  UPDATES: true, # Run apt-get update etc. on install
+
+  # Node version manager
+  NVM: true,
 
   # Oh-my-tmux-config
   OMT: true,
@@ -63,6 +66,7 @@ GUEST = CUSTOM[:GUEST]
 HOST = CUSTOM[:HOST]
 NAME = CUSTOM[:NAME]
 NVIM = CUSTOM[:NVIM]
+NVM = CUSTOM[:NVM]
 OMT = CUSTOM[:OMT]
 PRIVATE = CUSTOM[:NETWORKS][:PRIVATE]
 PUBLIC = CUSTOM[:NETWORKS][:PUBLIC]
@@ -115,13 +119,15 @@ Vagrant.configure('2') do |config|
     source: './provision/bashrc',
     destination: "${HOME}/.bashrc"
 
-  config.vm.provision 'shell',
-    privileged: false,
-    inline: 'export XDG_CACHE_HOME="${HOME}/.cache"; export XDG_CONFIG_HOME="${HOME}/.config"; export XDG_DATA_HOME="${HOME}/.local/share"; export XDG_STATE_HOME="${HOME}/.local/state"'
-
   if UPDATES then
     config.vm.provision 'shell',
       inline: 'apt-get update -y; apt-get dist-upgrade -y; apt-get autoremove -y; apt-get autoclean -y'
+  end
+
+  if NVM then
+    config.vm.provision 'shell',
+      inline: 'export XDG_CACHE_HOME="${HOME}/.cache"; export XDG_CONFIG_HOME="${HOME}/.config"; export XDG_DATA_HOME="${HOME}/.local/share"; export XDG_STATE_HOME="${HOME}/.local/state"; curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash ; export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")" ; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" ; nvm i --lts',
+    privileged: false
   end
 
   if NVIM then
@@ -131,10 +137,6 @@ Vagrant.configure('2') do |config|
     config.vm.provision 'file',
       source: './provision/optixal-neovim-config',
       destination: "${HOME}/etc/optixal-neovim-config"
-
-    config.vm.provision 'shell',
-      privileged: false,
-      inline: 'cd  "${HOME}/etc/optixal-neovim-config" && cd convenience && ./install.sh'
   end
 
   if OMT then
@@ -144,7 +146,7 @@ Vagrant.configure('2') do |config|
 
     config.vm.provision 'shell',
       privileged: false,
-      inline: 'ln -s "${HOME}/etc/oh-my-tmux/.tmux.conf" ./ && cp "${HOME}/etc/oh-my-tmux/.tmux.conf.local ./"'
+      inline: 'ln -s "${HOME}/etc/oh-my-tmux/.tmux.conf" ./ && cp "${HOME}/etc/oh-my-tmux/.tmux.conf.local" ./'
   end
 
   if SYNCED_DIR then config.vm.synced_folder SYNCED_DIR[:HOST], SYNCED_DIR[:GUEST] end
